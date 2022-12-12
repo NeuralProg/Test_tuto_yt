@@ -7211,8 +7211,8 @@ GameObject:
   - component: {fileID: 966152711}
   - component: {fileID: 966152710}
   - component: {fileID: 966152713}
-  - component: {fileID: 966152716}
   - component: {fileID: 966152717}
+  - component: {fileID: 966152716}
   m_Layer: 0
   m_Name: PlayerSprite
   m_TagString: Untagged

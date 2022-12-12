@@ -61,6 +61,10 @@ public class PlayerMovement : MonoBehaviour
             myAnimator.SetBool("Falling", true);
             myAnimator.ResetTrigger("Jump");
         }
+        else
+        {
+            myAnimator.SetBool("Falling", false);
+        }
 
         if (isGrounded)
         {
@@ -93,13 +97,15 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!isGrounded)
         {
+            myAnimator.SetLayerWeight(0, 0);
             myAnimator.SetLayerWeight(1, 1);
         }
         else
         {
+            myAnimator.SetLayerWeight(0, 1);
             myAnimator.SetLayerWeight(1, 0);
         }
-    } // Probleme : running anim in air 
+    }
 
     private void StopPS()
     {
