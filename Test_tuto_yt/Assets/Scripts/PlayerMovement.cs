@@ -13,13 +13,13 @@ public class PlayerMovement : MonoBehaviour
     private float horizMovement;
     private bool facingRight = true;
 
-    public LayerMask whatIsGround;
+    [SerializeField] private LayerMask whatIsGround;
+    [SerializeField] private Transform checkGround;
     private bool isGrounded;
-    public Transform checkGround;
-    public float checkRadius;
+    private float checkRadius = 0.15f;
 
     public float jumpForce;
-    public int resetJumpCounter;
+    private int resetJumpCounter = 1;
     private int jumpCounter;
 
     public ParticleSystem jps;
@@ -41,6 +41,7 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.velocity = Vector2.up * jumpForce;
             jumpCounter--;
+            myAnimator.SetTrigger("Jump");
             if (!isGrounded)
             {
                 jps.transform.position = gameObject.transform.position;
@@ -48,10 +49,24 @@ public class PlayerMovement : MonoBehaviour
                 Invoke(nameof(StopPS), jps.main.duration);
             }
         }
+
         if (jumpInputRelease && rb.velocity.y > 0)
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y / 3);
+        {
+            rb.velocity = new Vector2(rb.velocity.x, 0);
+            myAnimator.SetBool("Falling", true);
+        }
+
+        if (rb.velocity.y < 0)
+        {
+            myAnimator.SetBool("Falling", true);
+            myAnimator.ResetTrigger("Jump");
+        }
+
         if (isGrounded)
+        {
             jumpCounter = resetJumpCounter;
+            myAnimator.SetBool("Falling", false);
+        }
     }
 
     private void FixedUpdate()
@@ -59,6 +74,7 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = new Vector2(horizMovement * speed, rb.velocity.y);
         Flip(horizMovement);
         myAnimator.SetFloat("Speed", Mathf.Abs(horizMovement));
+        HandleLayers();
     }
 
     private void Flip(float horizontal)
@@ -72,6 +88,18 @@ public class PlayerMovement : MonoBehaviour
             transform.localScale = theScale;
         }
     }
+
+    private void HandleLayers()
+    {
+        if (!isGrounded)
+        {
+            myAnimator.SetLayerWeight(1, 1);
+        }
+        else
+        {
+            myAnimator.SetLayerWeight(1, 0);
+        }
+    } // Probleme : running anim in air 
 
     private void StopPS()
     {
