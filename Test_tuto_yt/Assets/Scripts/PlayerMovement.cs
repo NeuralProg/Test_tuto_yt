@@ -2,27 +2,33 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Animator))]
 public class PlayerMovement : MonoBehaviour
 {
     private Rigidbody2D rb;
     private Animator myAnimator;
 
+    // Basic movements 
     public float speed = 2.0f;
     private float horizMovement;
     private bool facingRight = true;
 
+    // Checks
     [SerializeField] private LayerMask whatIsGround;
     [SerializeField] private Transform checkGround;
+    [SerializeField] private LayerMask whatIsWall;
+    [SerializeField] private Transform checkWall;
     private bool isGrounded;
-    private float checkRadius = 0.15f;
+    private bool isWalled;
 
+    // Jump
     public float jumpForce;
     private int resetJumpCounter = 1;
     private int jumpCounter;
-
     public ParticleSystem jps;
+
+    // Wall slide
+    private bool isWallSliding;
+    private float wallSlidingSpeed = 1f;
 
     private void Start()
     {
@@ -35,7 +41,8 @@ public class PlayerMovement : MonoBehaviour
         horizMovement = Input.GetAxisRaw("Horizontal");
         var jumpInput = Input.GetButtonDown("Jump");
         var jumpInputRelease = Input.GetButtonUp("Jump");
-        isGrounded = Physics2D.OverlapCircle(checkGround.position, checkRadius, whatIsGround);
+        isGrounded = Physics2D.OverlapCircle(checkGround.position, 0.1f, whatIsGround);
+        isWalled = Physics2D.OverlapCircle(checkWall.position, 0.2f, whatIsWall);
 
         if (jumpInput && jumpCounter > 0)
         {
@@ -79,6 +86,7 @@ public class PlayerMovement : MonoBehaviour
         Flip(horizMovement);
         myAnimator.SetFloat("Speed", Mathf.Abs(horizMovement));
         HandleLayers();
+        WallSlide();
     }
 
     private void Flip(float horizontal)
@@ -104,6 +112,19 @@ public class PlayerMovement : MonoBehaviour
         {
             myAnimator.SetLayerWeight(0, 1);
             myAnimator.SetLayerWeight(1, 0);
+        }
+    }
+
+    private void WallSlide()
+    {
+        if (isWalled && !isGrounded && horizMovement != 0f)
+        {
+            isWallSliding = true;
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
+        }
+        else
+        {
+            isWallSliding = false;
         }
     }
 
