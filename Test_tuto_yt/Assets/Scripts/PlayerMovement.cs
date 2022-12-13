@@ -85,7 +85,6 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = new Vector2(horizMovement * speed, rb.velocity.y);
         Flip(horizMovement);
         myAnimator.SetFloat("Speed", Mathf.Abs(horizMovement));
-        HandleLayers();
         WallSlide();
     }
 
@@ -98,20 +97,6 @@ public class PlayerMovement : MonoBehaviour
             Vector3 theScale = transform.localScale;
             theScale.x *= -1;
             transform.localScale = theScale;
-        }
-    }
-
-    private void HandleLayers()
-    {
-        if (!isGrounded)
-        {
-            myAnimator.SetLayerWeight(0, 0);
-            myAnimator.SetLayerWeight(1, 1);
-        }
-        else
-        {
-            myAnimator.SetLayerWeight(0, 1);
-            myAnimator.SetLayerWeight(1, 0);
         }
     }
 
