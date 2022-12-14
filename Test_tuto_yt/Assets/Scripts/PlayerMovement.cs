@@ -27,7 +27,7 @@ public class PlayerMovement : MonoBehaviour
     public ParticleSystem jps;
 
     // Wall slide
-    private bool isWallSliding;
+    private bool isWallSliding;     
     private float wallSlidingSpeed = 1f;
 
 
@@ -67,16 +67,14 @@ public class PlayerMovement : MonoBehaviour
                     rb.velocity = new Vector2(-20, jumpForce);
                     jumpCounter--;
                     myAnimator.SetTrigger("Jump");
-                    print("test facing right"); // A supprimer
                 }
                 else
                 {
                     rb.velocity = new Vector2(20, jumpForce);
                     jumpCounter--;
                     myAnimator.SetTrigger("Jump");
-                    print("test facing left"); // A supprimer
                 }
-            } // descente du mur lors d'un deplacement sur le mur + saut sortie mur smooth sur axe X
+            } // descente du mur lors d'un deplacement sur le mur apres un ptt delai qui permet de sauter dans la dirrection opposee + saut sortie mur smooth sur axe X
 
             if (isGrounded)
             {
@@ -137,7 +135,7 @@ public class PlayerMovement : MonoBehaviour
     // Wall slide
     private void WallSlide()
     {
-        if (isWalled && !isGrounded)
+        if (isWalled && !isGrounded && (horizMovement == 1f && facingRight || horizMovement == -1f && !facingRight))
         {
             isWallSliding = true;
             jumpCounter = resetJumpCounter;
@@ -147,8 +145,21 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            isWallSliding = false;
+            if (isWalled && !isGrounded && (horizMovement == 1f && !facingRight || horizMovement == -1f && facingRight))
+            {
+                jumpCounter = resetJumpCounter;
+                myAnimator.ResetTrigger("Jump");
+                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
+                Invoke(nameof(StopWallSlide), 1f);
+            }
+            else
+                StopWallSlide();
         }
+    }
+
+    private void StopWallSlide()
+    {
+        isWallSliding = false;
     }
 
     // Particles
