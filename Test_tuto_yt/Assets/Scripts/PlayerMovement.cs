@@ -26,10 +26,10 @@ public class PlayerMovement : MonoBehaviour
     private int jumpCounter;
     public ParticleSystem jps;
 
-    // Wall slide
+    // Wall jump
     private bool isWallSliding;     
     private float wallSlidingSpeed = 1f;
-
+    private bool isWallJumping;
 
     // __main__
     private void Start()
@@ -49,39 +49,7 @@ public class PlayerMovement : MonoBehaviour
         // Jump
         if (jumpInput && jumpCounter > 0)
         {
-            if (!isGrounded && !isWallSliding)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-                jumpCounter--;
-                myAnimator.SetTrigger("Jump");
-
-                jps.transform.position = gameObject.transform.position;
-                jps.Play();
-                Invoke(nameof(StopPS), jps.main.duration);
-            }
-
-            if (!isGrounded && isWallSliding)
-            {
-                if (facingRight)
-                {
-                    rb.velocity = new Vector2(-20, jumpForce);
-                    jumpCounter--;
-                    myAnimator.SetTrigger("Jump");
-                }
-                else
-                {
-                    rb.velocity = new Vector2(20, jumpForce);
-                    jumpCounter--;
-                    myAnimator.SetTrigger("Jump");
-                }
-            } // descente du mur lors d'un deplacement sur le mur apres un ptt delai qui permet de sauter dans la dirrection opposee + saut sortie mur smooth sur axe X
-
-            if (isGrounded)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-                jumpCounter--;
-                myAnimator.SetTrigger("Jump");
-            }
+            Jump();
         }
 
         if (jumpInputRelease && rb.velocity.y > 0)
@@ -109,15 +77,18 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        WallSlide();
         myAnimator.SetFloat("Speed", Mathf.Abs(horizMovement));
         myAnimator.SetBool("Sliding", isWallSliding);
 
-        if (!isWallSliding)
-            rb.velocity = new Vector2(horizMovement * speed, rb.velocity.y);
+        WallSlide();
         
         if (!isWallSliding)
             Flip(horizMovement);
+
+        if (isWallJumping)
+            rb.velocity = new Vector2(-horizMovement * 6f, 8f);
+        else
+            rb.velocity = new Vector2(horizMovement * speed, rb.velocity.y);
     }
 
     // Custom functions
@@ -132,10 +103,37 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void Jump()
+    {
+        if (!isGrounded && !isWallSliding)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            jumpCounter--;
+            myAnimator.SetTrigger("Jump");
+
+            jps.transform.position = gameObject.transform.position;
+            jps.Play();
+            Invoke(nameof(StopPS), jps.main.duration);
+        }
+
+        if (isGrounded)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            jumpCounter--;
+            myAnimator.SetTrigger("Jump");
+        }
+
+        if (isWallSliding)
+        {
+            isWallJumping = true;
+            Invoke("StopWallJump", 0.05f);
+        }
+    }
+
     // Wall slide
     private void WallSlide()
     {
-        if (isWalled && !isGrounded && (horizMovement == 1f && facingRight || horizMovement == -1f && !facingRight))
+        if (isWalled && !isGrounded && horizMovement != 0f)
         {
             isWallSliding = true;
             jumpCounter = resetJumpCounter;
@@ -144,22 +142,12 @@ public class PlayerMovement : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
         }
         else
-        {
-            if (isWalled && !isGrounded && (horizMovement == 1f && !facingRight || horizMovement == -1f && facingRight))
-            {
-                jumpCounter = resetJumpCounter;
-                myAnimator.ResetTrigger("Jump");
-                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
-                Invoke(nameof(StopWallSlide), 1f);
-            }
-            else
-                StopWallSlide();
-        }
+            isWallSliding = false;
     }
 
-    private void StopWallSlide()
+    private void StopWallJump()
     {
-        isWallSliding = false;
+        isWallJumping = false;
     }
 
     // Particles
