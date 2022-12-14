@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour
     private float horizMovement;
     private bool facingRight = true;
 
-    // Checks
+    // Checks ground & wall
     [SerializeField] private LayerMask whatIsGround;
     [SerializeField] private Transform checkGround;
     [SerializeField] private LayerMask whatIsWall;
@@ -30,6 +30,16 @@ public class PlayerMovement : MonoBehaviour
     private bool isWallSliding;
     private float wallSlidingSpeed = 1f;
 
+    // Wall jump
+    private bool isWallJumping;
+    private float wallJumpingDirection;
+    private float wallJumpTime = 0.2f;
+    private float wallJumpingCounter;
+    private float wallJumpingDuration = 0.4f;
+    private Vector2 wallJumpingPower = new Vector2(8f, 16f);
+
+
+    // __main__
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -44,6 +54,7 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(checkGround.position, 0.1f, whatIsGround);
         isWalled = Physics2D.OverlapCircle(checkWall.position, 0.2f, whatIsWall);
 
+        // Jump
         if (jumpInput && jumpCounter > 0)
         {
             rb.velocity = Vector2.up * jumpForce;
@@ -102,7 +113,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void WallSlide()
     {
-        if (isWalled && !isGrounded && horizMovement != 0f)
+        if (isWalled && !isGrounded)
         {
             isWallSliding = true;
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
@@ -111,6 +122,11 @@ public class PlayerMovement : MonoBehaviour
         {
             isWallSliding = false;
         }
+    }
+
+    private void WallJump()
+    {
+
     }
 
     private void StopPS()
