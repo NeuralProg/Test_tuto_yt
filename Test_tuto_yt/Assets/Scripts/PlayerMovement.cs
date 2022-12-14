@@ -30,14 +30,6 @@ public class PlayerMovement : MonoBehaviour
     private bool isWallSliding;
     private float wallSlidingSpeed = 1f;
 
-    // Wall jump
-    private bool isWallJumping;
-    private float wallJumpingDirection;
-    private float wallJumpTime = 0.2f;
-    private float wallJumpingCounter;
-    private float wallJumpingDuration = 0.4f;
-    private Vector2 wallJumpingPower = new Vector2(8f, 16f);
-
 
     // __main__
     private void Start()
@@ -51,20 +43,46 @@ public class PlayerMovement : MonoBehaviour
         horizMovement = Input.GetAxisRaw("Horizontal");
         var jumpInput = Input.GetButtonDown("Jump");
         var jumpInputRelease = Input.GetButtonUp("Jump");
-        isGrounded = Physics2D.OverlapCircle(checkGround.position, 0.1f, whatIsGround);
-        isWalled = Physics2D.OverlapCircle(checkWall.position, 0.2f, whatIsWall);
+        isGrounded = Physics2D.OverlapCircle(checkGround.position, 0.05f, whatIsGround);
+        isWalled = Physics2D.OverlapCircle(checkWall.position, 0.1f, whatIsWall);
 
         // Jump
         if (jumpInput && jumpCounter > 0)
         {
-            rb.velocity = Vector2.up * jumpForce;
-            jumpCounter--;
-            myAnimator.SetTrigger("Jump");
-            if (!isGrounded)
+            if (!isGrounded && !isWallSliding)
             {
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                jumpCounter--;
+                myAnimator.SetTrigger("Jump");
+
                 jps.transform.position = gameObject.transform.position;
                 jps.Play();
                 Invoke(nameof(StopPS), jps.main.duration);
+            }
+
+            if (!isGrounded && isWallSliding)
+            {
+                if (facingRight)
+                {
+                    rb.velocity = new Vector2(-20, jumpForce);
+                    jumpCounter--;
+                    myAnimator.SetTrigger("Jump");
+                    print("test facing right"); // A supprimer
+                }
+                else
+                {
+                    rb.velocity = new Vector2(20, jumpForce);
+                    jumpCounter--;
+                    myAnimator.SetTrigger("Jump");
+                    print("test facing left"); // A supprimer
+                }
+            } // descente du mur lors d'un deplacement sur le mur + saut sortie mur smooth sur axe X
+
+            if (isGrounded)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                jumpCounter--;
+                myAnimator.SetTrigger("Jump");
             }
         }
 
@@ -93,29 +111,38 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        rb.velocity = new Vector2(horizMovement * speed, rb.velocity.y);
-        Flip(horizMovement);
-        myAnimator.SetFloat("Speed", Mathf.Abs(horizMovement));
         WallSlide();
+        myAnimator.SetFloat("Speed", Mathf.Abs(horizMovement));
+        myAnimator.SetBool("Sliding", isWallSliding);
+
+        if (!isWallSliding)
+            rb.velocity = new Vector2(horizMovement * speed, rb.velocity.y);
+        
+        if (!isWallSliding)
+            Flip(horizMovement);
     }
 
+    // Custom functions
     private void Flip(float horizontal)
     {
-        if(horizontal < 0 && facingRight ||  horizontal > 0 && !facingRight)
+        if (horizontal < 0 && facingRight || horizontal > 0 && !facingRight)
         {
             facingRight = !facingRight;
-
             Vector3 theScale = transform.localScale;
             theScale.x *= -1;
             transform.localScale = theScale;
         }
     }
 
+    // Wall slide
     private void WallSlide()
     {
         if (isWalled && !isGrounded)
         {
             isWallSliding = true;
+            jumpCounter = resetJumpCounter;
+            myAnimator.ResetTrigger("Jump");
+
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
         }
         else
@@ -124,11 +151,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void WallJump()
-    {
-
-    }
-
+    // Particles
     private void StopPS()
     {
         jps.Stop();
