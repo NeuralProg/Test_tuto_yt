@@ -17,8 +17,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Transform checkGround;
     [SerializeField] private LayerMask whatIsWall;
     [SerializeField] private Transform checkWall;
-    private bool isGrounded;
-    private bool isWalled;
+    private bool isGrounded; 
+    private bool isWalled; 
 
     // Jump
     public float jumpForce;
@@ -43,7 +43,7 @@ public class PlayerMovement : MonoBehaviour
         horizMovement = Input.GetAxisRaw("Horizontal");
         var jumpInput = Input.GetButtonDown("Jump");
         var jumpInputRelease = Input.GetButtonUp("Jump");
-        isGrounded = Physics2D.OverlapCircle(checkGround.position, 0.05f, whatIsGround);
+        isGrounded = Physics2D.OverlapCircle(checkGround.position, 0.1f, whatIsGround);
         isWalled = Physics2D.OverlapCircle(checkWall.position, 0.1f, whatIsWall);
 
         // Jump
@@ -79,6 +79,7 @@ public class PlayerMovement : MonoBehaviour
     {
         myAnimator.SetFloat("Speed", Mathf.Abs(horizMovement));
         myAnimator.SetBool("Sliding", isWallSliding);
+        myAnimator.SetBool("Grounded", isGrounded);
 
         WallSlide();
         
