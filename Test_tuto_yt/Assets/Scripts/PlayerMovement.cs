@@ -1,13 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerMovement : MonoBehaviour
 {
+    // Basic movements
     private Rigidbody2D rb;
     private Animator myAnimator;
-
-    // Basic movements 
     public float speed = 2.0f;
     private float horizMovement;
     private bool facingRight = true;
@@ -31,11 +31,21 @@ public class PlayerMovement : MonoBehaviour
     private float wallSlidingSpeed = 1f;
     private bool isWallJumping;
 
+    // Dash
+    private float dashingVelocity = 5f;
+    private float dashingTime = 0.25f;
+    private float dashingXDirection;
+    private bool isDashing;
+    private bool canDash;
+    private TrailRenderer dashTR;
+
+
     // __main__
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         myAnimator = GetComponent<Animator>();
+        dashTR = GetComponent<TrailRenderer>();
     }
 
     private void Update()
@@ -43,8 +53,18 @@ public class PlayerMovement : MonoBehaviour
         horizMovement = Input.GetAxisRaw("Horizontal");
         var jumpInput = Input.GetButtonDown("Jump");
         var jumpInputRelease = Input.GetButtonUp("Jump");
+        var dashInput = Input.GetButtonDown("Dash");
+
         isGrounded = Physics2D.OverlapCircle(checkGround.position, 0.1f, whatIsGround);
         isWalled = Physics2D.OverlapCircle(checkWall.position, 0.1f, whatIsWall);
+
+        // Grounded
+        if (isGrounded)
+        {
+            jumpCounter = resetJumpCounter;
+            myAnimator.SetBool("Falling", false);
+            canDash = true;
+        }
 
         // Jump
         if (jumpInput && jumpCounter > 0)
@@ -68,11 +88,8 @@ public class PlayerMovement : MonoBehaviour
             myAnimator.SetBool("Falling", false);
         }
 
-        if (isGrounded)
-        {
-            jumpCounter = resetJumpCounter;
-            myAnimator.SetBool("Falling", false);
-        }
+        // Dash
+        Dash(dashInput);
     }
 
     private void FixedUpdate()
@@ -89,8 +106,12 @@ public class PlayerMovement : MonoBehaviour
         if (isWallJumping)
             rb.velocity = new Vector2(-horizMovement * 6f, 8f);
         else
-            rb.velocity = new Vector2(horizMovement * speed, rb.velocity.y);
+        {
+            if (!isDashing)
+                rb.velocity = new Vector2(horizMovement * speed, rb.velocity.y);
+        }
     }
+
 
     // Custom functions
     private void Flip(float horizontal)
@@ -131,7 +152,13 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Wall slide
+    // Particles jump
+    private void StopPS()
+    {
+        jps.Stop();
+    }
+
+    // Wall slide/jump
     private void WallSlide()
     {
         if (isWalled && !isGrounded && horizMovement != 0f)
@@ -151,9 +178,34 @@ public class PlayerMovement : MonoBehaviour
         isWallJumping = false;
     }
 
-    // Particles
-    private void StopPS()
+    // Dash
+    private void Dash(bool dashInput)
     {
-        jps.Stop();
+        if (dashInput && canDash)
+        {
+            isDashing = true;
+            canDash = false;
+            dashTR.emitting = true;
+            dashingXDirection = horizMovement;
+
+            if (dashingXDirection == 0f)
+            {
+                dashingXDirection = transform.localScale.x;
+            }
+
+            StartCoroutine(StopDashing());
+        }
+
+        if (isDashing)
+        {
+            rb.velocity = new Vector2(dashingXDirection * dashingVelocity, 0);
+        }
+    }
+
+    private IEnumerator StopDashing()
+    {
+        yield return new WaitForSeconds(dashingTime);
+        isDashing = false;
+        dashTR.emitting = false;
     }
 }
