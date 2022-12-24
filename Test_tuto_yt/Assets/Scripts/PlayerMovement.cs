@@ -8,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
     // Basic movements
     private Rigidbody2D rb;
     private Animator myAnimator;
-    public float speed = 2.0f;
+    private float speed = 2.5f;
     private float horizMovement;
     private bool facingRight = true;
 
@@ -21,10 +21,10 @@ public class PlayerMovement : MonoBehaviour
     private bool isWalled; 
 
     // Jump
-    public float jumpForce;
+    private float jumpForce = 8f;
     private int resetJumpCounter = 1;
     private int jumpCounter;
-    public ParticleSystem jps;
+    [SerializeField] private ParticleSystem jps;
 
     // Wall jump
     private bool isWallSliding;     
@@ -63,6 +63,14 @@ public class PlayerMovement : MonoBehaviour
         {
             jumpCounter = resetJumpCounter;
             myAnimator.SetBool("Falling", false);
+            myAnimator.ResetTrigger("Dash");
+            canDash = true;
+        }
+        if (isWallSliding)
+        {
+            jumpCounter = resetJumpCounter;
+            myAnimator.ResetTrigger("Jump");
+            myAnimator.ResetTrigger("Dash");
             canDash = true;
         }
 
@@ -78,7 +86,7 @@ public class PlayerMovement : MonoBehaviour
             myAnimator.SetBool("Falling", true);
         }
 
-        if (rb.velocity.y < 0)
+        if (rb.velocity.y < -1)
         {
             myAnimator.SetBool("Falling", true);
             myAnimator.ResetTrigger("Jump");
@@ -164,9 +172,6 @@ public class PlayerMovement : MonoBehaviour
         if (isWalled && !isGrounded && horizMovement != 0f)
         {
             isWallSliding = true;
-            jumpCounter = resetJumpCounter;
-            myAnimator.ResetTrigger("Jump");
-
             rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
         }
         else
@@ -181,12 +186,13 @@ public class PlayerMovement : MonoBehaviour
     // Dash
     private void Dash(bool dashInput)
     {
-        if (dashInput && canDash)
+        if (dashInput && canDash && !isDashing)
         {
             isDashing = true;
             canDash = false;
             dashTR.emitting = true;
             dashingXDirection = horizMovement;
+            myAnimator.SetTrigger("Dash");
 
             if (dashingXDirection == 0f)
             {
