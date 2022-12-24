@@ -17,7 +17,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Transform checkGround;
     [SerializeField] private LayerMask whatIsWall;
     [SerializeField] private Transform checkWall;
-    public bool isGrounded;     // to modify
+    private bool isGrounded; 
     private bool isWalled; 
 
     // Jump
