@@ -32,7 +32,7 @@ public class PlayerMovement : MonoBehaviour
     private bool isWallJumping;
 
     // Dash
-    private float dashingVelocity = 5f;
+    private float dashingVelocity = 7f;
     private float dashingTime = 0.25f;
     private float dashingXDirection;
     private bool isDashing;
