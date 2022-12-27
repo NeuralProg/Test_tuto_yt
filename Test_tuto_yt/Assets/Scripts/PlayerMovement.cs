@@ -5,33 +5,33 @@ using UnityEngine.EventSystems;
 
 public class PlayerMovement : MonoBehaviour
 {
-    // Basic movements
+    [Header("Basic movements")]
     private Rigidbody2D rb;
     private Animator myAnimator;
-    private float speed = 2.5f;
+    private float speed = 125f;
     private float horizMovement;
     private bool facingRight = true;
 
-    // Checks ground & wall
+    [Header("State checks")]
     [SerializeField] private LayerMask whatIsGround;
     [SerializeField] private Transform checkGround;
     [SerializeField] private LayerMask whatIsWall;
     [SerializeField] private Transform checkWall;
     private bool isGrounded; 
-    private bool isWalled; 
+    private bool isWalled;
 
-    // Jump
+    [Header("Basic jump")]
     private float jumpForce = 8f;
     private int resetJumpCounter = 1;
     private int jumpCounter;
     [SerializeField] private ParticleSystem jps;
 
-    // Wall jump
+    [Header("Wall jump")]
     private bool isWallSliding;     
     private float wallSlidingSpeed = 1f;
     private bool isWallJumping;
 
-    // Dash
+    [Header("Dash")]
     private float dashingVelocity = 7f;
     private float dashingTime = 0.25f;
     private float dashingXDirection;
@@ -116,7 +116,7 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             if (!isDashing)
-                rb.velocity = new Vector2(horizMovement * speed, rb.velocity.y);
+                rb.velocity = new Vector2(horizMovement * speed * Time.deltaTime, rb.velocity.y);
         }
     }
 
