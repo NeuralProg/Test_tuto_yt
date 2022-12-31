@@ -19,8 +19,8 @@ public abstract class Character : MonoBehaviour
     [SerializeField] protected Transform checkGround;
     [SerializeField] protected LayerMask whatIsWall;
     [SerializeField] protected Transform checkWall;
-    protected bool isGrounded;
-    protected bool isWalled;
+    [SerializeField] protected bool isGrounded;
+    [SerializeField] protected bool isWalled;
 
     [Header("Basic jump")]
     [SerializeField] protected ParticleSystem jps;
@@ -51,6 +51,17 @@ public abstract class Character : MonoBehaviour
     public virtual void Update() 
     {
         // Handle Input
+        isGrounded = Physics2D.OverlapCircle(checkGround.position, 0.1f, whatIsGround);
+
+        if (rb.velocity.y < -1)
+        {
+            myAnimator.SetBool("Falling", true);
+            myAnimator.ResetTrigger("Jump");
+        }
+        else
+        {
+            myAnimator.SetBool("Falling", false);
+        }
     }
 
     public virtual void FixedUpdate()
@@ -66,6 +77,16 @@ public abstract class Character : MonoBehaviour
     {
         rb.velocity = new Vector2(direction * speed * Time.deltaTime, rb.velocity.y);
     }
+
+    protected void Jump()
+    {
+        rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+    }
+
+    protected void Dash()
+    {
+
+    }
     #endregion
 
 
@@ -74,6 +95,10 @@ public abstract class Character : MonoBehaviour
     {
         Move();
     }
+
+    protected abstract void HandleJumping();
+
+    protected abstract void HandleDashing();
 
     protected void Flip(float horizontal)
     {
